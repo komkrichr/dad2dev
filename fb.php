@@ -1,47 +1,50 @@
 <?php
 $access_token = "EAAOdEqVTq5QBAC1iUDoNWIVHZCipfBNAFMJMEZB4EK0kbilJGiMmcYrplw1ThYz39DAr45kmZCHza2rvZBr3hkvgMYYtGsgqFxczHskUzYaj2ZAOAV3IammjD8Y5v3wjYq5ugHPR8VultZAEddq8zzhTGdp8hRsAgfjn58quOlbQJyXZAiLWSap";
 $verify_token = "dad2dev";
-$hub_verify_token = null;
-if(isset($_REQUEST['hub_challenge'])) {
- $challenge = $_REQUEST['hub_challenge'];
- $hub_verify_token = $_REQUEST['hub_verify_token'];
-}
-if ($hub_verify_token === $verify_token) {
- echo $challenge;
-}
-$input = json_decode(file_get_contents('php://input'), true);
-$sender = $input['entry'][0]['messaging'][0]['sender']['id'];
-$message = $input['entry'][0]['messaging'][0]['message']['text'];
-$message_to_reply = 'Hi';
-/**
- * Some Basic rules to validate incoming messages
- */
 
-//API Url
-$url = 'https://graph.facebook.com/v2.6/me/messages?access_token='.$access_token;
+$challenge = $_REQUEST['hub_challenge'];
+$verify_token = $_REQUEST['hub_verify_token'];
+
+// Set this Verify Token Value on your Facebook App 
+if ($verify_token === 'dad2dev') {
+  echo $challenge;
+}
+
+$input = json_decode(file_get_contents('php://input'), true);
+
+// Get the Senders Graph ID
+$sender = $input['entry'][0]['messaging'][0]['sender']['id'];
+
+// Get the returned message
+$message = $input['entry'][0]['messaging'][0]['message']['text'];
+
+//API Url and Access Token, generate this token value on your Facebook App Page
+$url = 'https://graph.facebook.com/v2.6/me/messages?access_token=$access_token';
+
 //Initiate cURL.
 $ch = curl_init($url);
+
 //The JSON data.
 $jsonData = '{
     "recipient":{
-        "id":"'.$sender.'"
-    },
+        "id":"' . $sender . '"
+    }, 
     "message":{
-        "text":"'.$message_to_reply.'"
+        "text":"The message you want to return"
     }
 }';
 
-//Encode the array into JSON.
-$jsonDataEncoded = $jsonData;
 //Tell cURL that we want to send a POST request.
 curl_setopt($ch, CURLOPT_POST, 1);
+
 //Attach our encoded JSON string to the POST fields.
-curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonDataEncoded);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonData);
+
 //Set the content type to application/json
 curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
-//curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded'));
-//Execute the request
+
+//Execute the request but first check if the message is not empty.
 if(!empty($input['entry'][0]['messaging'][0]['message'])){
-    $result = curl_exec($ch);
+  $result = curl_exec($ch);
 }
 ?>
